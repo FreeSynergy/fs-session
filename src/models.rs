@@ -49,6 +49,7 @@ impl ProgramEntry {
         }
     }
 
+    #[must_use]
     pub fn is_minimized(&self) -> bool {
         self.state == ProgramState::Minimized
     }
@@ -77,32 +78,39 @@ impl Session {
         }
     }
 
+    #[must_use]
     pub fn id(&self) -> &str {
         &self.id
     }
 
+    #[must_use]
     pub fn user_id(&self) -> &str {
         &self.user_id
     }
 
+    #[must_use]
     pub fn display_name(&self) -> &str {
         &self.display_name
     }
 
+    #[must_use]
     pub fn started_at(&self) -> DateTime<Utc> {
         self.started_at
     }
 
+    #[must_use]
     pub fn programs(&self) -> &[ProgramEntry] {
         &self.programs
     }
 
     /// Find an open program by id.
+    #[must_use]
     pub fn program(&self, program_id: &str) -> Option<&ProgramEntry> {
         self.programs.iter().find(|p| p.program_id == program_id)
     }
 
     /// Whether the program is currently open (any state).
+    #[must_use]
     pub fn is_open(&self, program_id: &str) -> bool {
         self.program(program_id).is_some()
     }

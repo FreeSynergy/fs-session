@@ -1,4 +1,4 @@
-//! `fs-session` — user session management for FreeSynergy.
+//! `fs-session` — user session management for `FreeSynergy`.
 //!
 //! A **session** is the runtime context of a logged-in user. It tracks:
 //!

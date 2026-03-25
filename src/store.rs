@@ -1,4 +1,4 @@
-//! `SessionStore` — persistent session storage backed by SQLite.
+//! `SessionStore` — persistent session storage backed by `SQLite`.
 
 use crate::{
     error::SessionError,
@@ -83,12 +83,16 @@ pub struct SessionStore {
 
 impl SessionStore {
     /// Open (or create) the session database. Use `":memory:"` in tests.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`SessionError`] if the database connection fails or the schema cannot be applied.
     #[instrument(name = "session_store.open")]
     pub async fn open(path: &str) -> Result<Self, SessionError> {
         let url = if path == ":memory:" {
             "sqlite::memory:".to_string()
         } else {
-            format!("sqlite://{}?mode=rwc", path)
+            format!("sqlite://{path}?mode=rwc")
         };
         let db = Database::connect(&url).await?;
         db.execute_unprepared(SCHEMA).await?;
@@ -98,6 +102,10 @@ impl SessionStore {
     // ── Session lifecycle ─────────────────────────────────────────────────────
 
     /// Create a new session for the given user.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`SessionError`] on database failure.
     #[instrument(name = "session_store.create", skip(self))]
     pub async fn create(&self, user_id: &str, display_name: &str) -> Result<Session, SessionError> {
         let session = Session::new(user_id, display_name);
@@ -106,6 +114,10 @@ impl SessionStore {
     }
 
     /// Load a session by id.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`SessionError::NotFound`] if the session does not exist, or a database error.
     pub async fn get(&self, session_id: &str) -> Result<Session, SessionError> {
         entity::Entity::find_by_id(session_id)
             .one(&self.db)
@@ -117,6 +129,10 @@ impl SessionStore {
     }
 
     /// Load the most recent session for a user, if any.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`SessionError`] on database or deserialization failure.
     pub async fn get_for_user(&self, user_id: &str) -> Result<Option<Session>, SessionError> {
         entity::Entity::find()
             .filter(entity::Column::UserId.eq(user_id))
@@ -127,6 +143,10 @@ impl SessionStore {
     }
 
     /// Delete a session (logout).
+    ///
+    /// # Errors
+    ///
+    /// Returns [`SessionError::NotFound`] if the session does not exist, or a database error.
     #[instrument(name = "session_store.close")]
     pub async fn close(&self, session_id: &str) -> Result<(), SessionError> {
         let model = entity::Entity::find_by_id(session_id)
@@ -146,6 +166,10 @@ impl SessionStore {
     ///
     /// If the program is already open (e.g. minimized), this is a no-op —
     /// call `restore_program` instead.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`SessionError`] if the session is not found or on database failure.
     pub async fn open_program(
         &self,
         session_id: &str,
@@ -160,6 +184,10 @@ impl SessionStore {
     }
 
     /// Set a program to `Minimized` state.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`SessionError`] if the session or program is not found, or on database failure.
     pub async fn minimize_program(
         &self,
         session_id: &str,
@@ -170,6 +198,10 @@ impl SessionStore {
     }
 
     /// Restore a minimized program to `Open` state.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`SessionError`] if the session or program is not found, or on database failure.
     pub async fn restore_program(
         &self,
         session_id: &str,
@@ -180,6 +212,10 @@ impl SessionStore {
     }
 
     /// Remove a program from the session (closed by user).
+    ///
+    /// # Errors
+    ///
+    /// Returns [`SessionError::ProgramNotOpen`] if the program is not open, or a database error.
     pub async fn close_program(
         &self,
         session_id: &str,
