@@ -1,0 +1,9 @@
+[package]
+id          = "freesynergy/fs-session"
+name        = "fs-session"
+version     = "0.1.0"
+type        = "library"
+description = "User session management for FreeSynergy — active user, open applications, window state"
+license     = "MIT"
+authors     = ["FreeSynergy.Net"]
+repository  = "https://github.com/FreeSynergy/fs-session"

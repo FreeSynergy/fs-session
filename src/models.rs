@@ -5,19 +5,19 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 use uuid::Uuid;
 
-// ── ProgramState ──────────────────────────────────────────────────────────────
+// ── AppState ──────────────────────────────────────────────────────────────────
 
-/// Window state of an open program.
+/// Window state of an open application.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "snake_case")]
-pub enum ProgramState {
+pub enum AppState {
     #[default]
     Open,
     Minimized,
     Focused,
 }
 
-impl fmt::Display for ProgramState {
+impl fmt::Display for AppState {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Open => write!(f, "Open"),
@@ -27,31 +27,31 @@ impl fmt::Display for ProgramState {
     }
 }
 
-// ── ProgramEntry ──────────────────────────────────────────────────────────────
+// ── AppSession ────────────────────────────────────────────────────────────────
 
-/// One open program within a session.
+/// One open application within a user session.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProgramEntry {
-    /// Program id, e.g. `"fs-store"`.
-    pub program_id: String,
+pub struct AppSession {
+    /// Application id, e.g. `"fs-store"`.
+    pub app_id: String,
     /// Current window state.
-    pub state: ProgramState,
-    /// When the program was opened.
+    pub state: AppState,
+    /// When the application was opened.
     pub opened_at: DateTime<Utc>,
 }
 
-impl ProgramEntry {
-    pub fn new(program_id: impl Into<String>) -> Self {
+impl AppSession {
+    pub fn new(app_id: impl Into<String>) -> Self {
         Self {
-            program_id: program_id.into(),
-            state: ProgramState::Open,
+            app_id: app_id.into(),
+            state: AppState::Open,
             opened_at: Utc::now(),
         }
     }
 
     #[must_use]
     pub fn is_minimized(&self) -> bool {
-        self.state == ProgramState::Minimized
+        self.state == AppState::Minimized
     }
 }
 
@@ -64,7 +64,7 @@ pub struct Session {
     user_id: String,
     display_name: String,
     started_at: DateTime<Utc>,
-    programs: Vec<ProgramEntry>,
+    apps: Vec<AppSession>,
 }
 
 impl Session {
@@ -74,7 +74,7 @@ impl Session {
             user_id: user_id.into(),
             display_name: display_name.into(),
             started_at: Utc::now(),
-            programs: Vec::new(),
+            apps: Vec::new(),
         }
     }
 
@@ -99,45 +99,41 @@ impl Session {
     }
 
     #[must_use]
-    pub fn programs(&self) -> &[ProgramEntry] {
-        &self.programs
+    pub fn apps(&self) -> &[AppSession] {
+        &self.apps
     }
 
-    /// Find an open program by id.
+    /// Find an open app by id.
     #[must_use]
-    pub fn program(&self, program_id: &str) -> Option<&ProgramEntry> {
-        self.programs.iter().find(|p| p.program_id == program_id)
+    pub fn app(&self, app_id: &str) -> Option<&AppSession> {
+        self.apps.iter().find(|a| a.app_id == app_id)
     }
 
-    /// Whether the program is currently open (any state).
+    /// Whether the app is currently open (any state).
     #[must_use]
-    pub fn is_open(&self, program_id: &str) -> bool {
-        self.program(program_id).is_some()
+    pub fn is_open(&self, app_id: &str) -> bool {
+        self.app(app_id).is_some()
     }
 
-    // ── Internal mutators (used by SessionStore) ──────────────────────────────
+    // ── Internal mutators (used by SessionStore impls) ────────────────────────
 
-    pub(crate) fn add_program(&mut self, entry: ProgramEntry) {
-        self.programs.push(entry);
+    pub(crate) fn add_app(&mut self, entry: AppSession) {
+        self.apps.push(entry);
     }
 
-    pub(crate) fn set_program_state(&mut self, program_id: &str, state: ProgramState) -> bool {
-        match self
-            .programs
-            .iter_mut()
-            .find(|p| p.program_id == program_id)
-        {
-            Some(p) => {
-                p.state = state;
+    pub(crate) fn set_app_state(&mut self, app_id: &str, state: AppState) -> bool {
+        match self.apps.iter_mut().find(|a| a.app_id == app_id) {
+            Some(a) => {
+                a.state = state;
                 true
             }
             None => false,
         }
     }
 
-    pub(crate) fn remove_program(&mut self, program_id: &str) -> bool {
-        let before = self.programs.len();
-        self.programs.retain(|p| p.program_id != program_id);
-        self.programs.len() < before
+    pub(crate) fn remove_app(&mut self, app_id: &str) -> bool {
+        let before = self.apps.len();
+        self.apps.retain(|a| a.app_id != app_id);
+        self.apps.len() < before
     }
 }

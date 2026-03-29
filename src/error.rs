@@ -10,12 +10,12 @@ pub enum SessionError {
     #[error("session not found: {id}")]
     NotFound { id: String },
 
-    #[error("program not open in session {session_id}: {program_id}")]
-    ProgramNotOpen {
-        session_id: String,
-        program_id: String,
-    },
+    #[error("app not open in session {session_id}: {app_id}")]
+    AppNotOpen { session_id: String, app_id: String },
 
     #[error("serialisation error: {0}")]
     Json(#[from] serde_json::Error),
+
+    #[error("failed to parse timestamp: {0}")]
+    Parse(String),
 }

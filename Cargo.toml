@@ -8,6 +8,7 @@ authors     = ["FreeSynergy.Net"]
 repository  = "https://github.com/FreeSynergy/fs-session"
 
 [dependencies]
+async-trait = { version = "0.1" }
 serde       = { version = "1", features = ["derive"] }
 serde_json  = { version = "1" }
 thiserror   = { version = "2" }
@@ -22,4 +23,4 @@ sea-orm = { version = "=2.0.0-rc.37", default-features = false, features = [
 ] }
 
 [dev-dependencies]
-tokio = { version = "1", features = ["full"] }
+tokio = { version = "1", features = ["full", "time"] }

@@ -3,8 +3,8 @@
 ## What is this?
 
 FreeSynergy Session — runtime context of a logged-in user.
-Tracks which user is active, which programs are open, and their window states.
-Solves the "minimize problem": restoring a minimized program finds the existing window.
+Tracks which user is active, which applications are open, and their window states.
+Solves the "minimize problem": restoring a minimized app finds the existing window.
 
 ## Rules
 
@@ -29,11 +29,18 @@ Every lib.rs / main.rs must have:
 
 ## Architecture
 
-- `SessionStore` — open database, create/close sessions, open/close programs
-- `Session` — a user session (user id, display name, started_at)
-- `ProgramEntry` — an open program window with its state
-- `ProgramState` — `Open`, `Minimized`, `Background`
+- `SessionStore` — **trait**: interface for all session storage backends
+- `SqliteSessionStore` — concrete SQLite-backed implementation of `SessionStore`
+- `SessionTracker` — **trait**: maps Desktop window events to session state
+- `StoreBackedTracker` — default tracker backed by any `SessionStore`
+- `Session` — a user session (user id, display name, started_at, apps)
+- `AppSession` — one open application window with its state
+- `AppState` — `Open`, `Minimized`, `Focused`
+
+Consumer code depends on `SessionStore` and `SessionTracker` traits only,
+never on `SqliteSessionStore` directly.
 
 ## Dependencies
 
-- `sea-orm =2.0.0-rc.37` (SQLite)
+- `async-trait = "0.1"` — trait with async methods
+- `sea-orm =2.0.0-rc.37` (SQLite backend for `SqliteSessionStore`)
