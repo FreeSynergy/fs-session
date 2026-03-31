@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+package session;
+
+// ── SessionService ────────────────────────────────────────────────────────────
+
+service SessionService {
+  // Return the currently active user (most recently logged-in session).
+  rpc CurrentUser(CurrentUserRequest) returns (CurrentUserResponse);
+
+  // Return all open applications in a session.
+  rpc OpenApps(OpenAppsRequest) returns (OpenAppsResponse);
+
+  // Return full session information for a user.
+  rpc SessionInfo(SessionInfoRequest) returns (SessionInfoResponse);
+
+  // Health probe.
+  rpc Health(HealthRequest) returns (HealthResponse);
+}
+
+// ── Messages ──────────────────────────────────────────────────────────────────
+
+message CurrentUserRequest {}
+
+message CurrentUserResponse {
+  // Empty when no user is logged in.
+  optional SessionProto session = 1;
+}
+
+message OpenAppsRequest {
+  string session_id = 1;
+}
+
+message OpenAppsResponse {
+  repeated AppSessionProto apps = 1;
+}
+
+message SessionInfoRequest {
+  string user_id = 1;
+}
+
+message SessionInfoResponse {
+  optional SessionProto session = 1;
+}
+
+message HealthRequest {}
+
+message HealthResponse {
+  bool ok = 1;
+  string version = 2;
+}
+
+// ── Domain types ──────────────────────────────────────────────────────────────
+
+message SessionProto {
+  string id         = 1;
+  string user_id    = 2;
+  string user_name  = 3;
+  string started_at = 4;
+  repeated AppSessionProto apps = 5;
+}
+
+message AppSessionProto {
+  string app_id    = 1;
+  string state     = 2;
+  string opened_at = 3;
+}

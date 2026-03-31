@@ -33,11 +33,17 @@
 #![deny(clippy::all, clippy::pedantic, warnings)]
 #![allow(clippy::module_name_repetitions)]
 
+pub mod bus_handler;
+pub mod cli;
 pub mod error;
+pub mod grpc;
 pub mod models;
 pub mod store;
 pub mod tracker;
 
+pub use bus_handler::{
+    AppClosedPayload, AppOpenedPayload, SessionBusHandler, UserLoginPayload, UserLogoutPayload,
+};
 pub use error::SessionError;
 pub use models::{AppSession, AppState, Session};
 pub use store::{SessionStore, SqliteSessionStore};
